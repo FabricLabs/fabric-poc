@@ -1,6 +1,7 @@
 'use strict';
 
 // Dependencies
+const merge = require('lodash.merge');
 const { applyOperation, observe } = require('fast-json-patch');
 const { ApolloClient, InMemoryCache, ApolloProvider, gql } = require('@apollo/client');
 
@@ -20,7 +21,8 @@ class ProofOfCombat extends Service {
   constructor (settings = {}) {
     super(settings);
 
-    this.settings = Object.assign({
+    // Default Settings
+    this.settings = merge({
       authority: 'https://proofofcombat.com',
       name: 'ProofOfCombat',
       port: 9898,
@@ -41,8 +43,9 @@ class ProofOfCombat extends Service {
           users: {}
         }
       }
-    });
+    }, settings);
 
+    // Fabric and Remote Services
     this.actor = new Actor({ name: this.settings.name });
     this.chain = new Chain({ name: this.settings.name });
     this.remote = new Remote({ authority: this.settings.authority });
@@ -51,10 +54,14 @@ class ProofOfCombat extends Service {
       cache: new InMemoryCache()
     });
 
-    this.http = new HTTPServer(this.settings.http);
+    // Heart, Soul, Goals, Observer, and an HTTP Server
+    this.heart = null;
+    this.soul = {};
     this.goals = [];
     this.observer = null;
+    this.http = new HTTPServer(this.settings.http);
 
+    // State
     this._state = {
       content: this.settings.state,
       parent: null
@@ -63,20 +70,12 @@ class ProofOfCombat extends Service {
     return this;
   }
 
-  get heartbeat () {
-    return this._heartbeat;
-  }
-
   get interval () {
-    return this.settings.frequency * 1000;
+    return 1000 / this.settings.frequency;
   }
 
   get parent () {
     return this._state.parent;
-  }
-
-  set heartbeat (interval) {
-    this._heartbeat = interval;
   }
 
   set parent (id) {
@@ -93,7 +92,7 @@ class ProofOfCombat extends Service {
 
     // Deterministic State ID
     const state = new Actor(this.state);
-    const behavior = this.selectAction(state);
+    const behavior = this.selectAction(this.state);
 
     // Create Beat
     const beat = {
@@ -264,18 +263,20 @@ class ProofOfCombat extends Service {
     }
 
     // Start Heartbeat
-    this.heartbeat = setInterval(this.beat.bind(this), this.interval);
+    console.debug('Setting interval to:', this.interval);
+    this.heart = setInterval(this.beat.bind(this), this.interval);
 
     // Emit Events
     this.emit('debug', `[PROOFOFCOMBAT] Started!`);
-    this.emit('ready', { id: this.agent.id });
+    this.emit('ready', { id: this.actor.id });
 
     // Resolve to self
     return this;
   }
 
   async stop () {
-    clearInterval(this._heartbeat);
+    clearInterval(this.heart);
+    await this.http.stop();
   }
 
   async sync () {
@@ -298,6 +299,8 @@ class ProofOfCombat extends Service {
     }
 
     this.commit();
+
+    console.debug('[PROOFOFCOMBAT] Synced!');
 
     return this;
   }

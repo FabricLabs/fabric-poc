@@ -10,6 +10,10 @@ module.exports = {
   seed: FIXTURE_SEED,
   frequency: 0.016666666666666, // Hz, 1 minute
   authority: 'https://chrisinajar.com:8443/graphql',
+  http: {
+    hostname: 'localhost',
+    port: 9898
+  },
   remotes: [
     { host: 'proofofcombat.com', port: 443, secure: true, collections: ['users'] }
   ]

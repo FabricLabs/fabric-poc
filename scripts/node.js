@@ -21,7 +21,7 @@ async function main (input) {
   });
 
   service.on('ready', () => {
-    console.log('[PROOFOFCOMBAT]', 'Service Ready:', service);
+    // console.log('[PROOFOFCOMBAT]', 'Service Ready:', service);
   });
 
   service.on('commit', (commit) => {
