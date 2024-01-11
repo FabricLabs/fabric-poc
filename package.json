@@ -33,7 +33,9 @@
     "@apollo/client": "3.8.9",
     "@fabric/core": "FabricLabs/fabric#master",
     "@fabric/http": "FabricLabs/fabric-http#feature/v0.1.0-RC1",
-    "graphql": "16.8.1"
+    "graphql": "16.8.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "mocha": "10.2.0"
