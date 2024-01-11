@@ -1,6 +1,6 @@
 $ npm i
 
-added 869 packages, and audited 870 packages in 2m
+added 865 packages, and audited 866 packages in 2m
 
 80 packages are looking for funding
   run `npm fund` for details
@@ -9,6 +9,9 @@ added 869 packages, and audited 870 packages in 2m
 
 To address issues that do not require attention, run:
   npm audit fix
+
+To address all issues possible, run:
+  npm audit fix --force
 
 Some issues need review, and may require choosing
 a different dependency.

@@ -5,6 +5,7 @@
   "main": "services/ProofOfCombat.js",
   "scripts": {
     "report:install": "rm -rf node_modules && echo \"\n\" > package-lock.json && echo \"$ npm i\" > reports/install.log && npm i >> reports/install.log",
+    "start": "node scripts/node.js",
     "test": "mocha tests"
   },
   "repository": {
@@ -30,12 +31,12 @@
   },
   "homepage": "https://github.com/FabricLabs/fabric-poc#readme",
   "dependencies": {
-    "@apollo/client": "3.8.9",
+    "@apollo/client": "3.5.9",
     "@fabric/core": "FabricLabs/fabric#master",
     "@fabric/http": "FabricLabs/fabric-http#feature/v0.1.0-RC1",
-    "graphql": "16.8.1",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "graphql": "16.3.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
     "mocha": "10.2.0"

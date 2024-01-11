@@ -1,0 +1,14 @@
+{
+  "name": "FABRIC",
+  "status": "INITIALIZED",
+  "collections": {
+    "places": {},
+    "users": {}
+  },
+  "state": {
+    "counts": {
+      "places": 0,
+      "users": 0
+    }
+  }
+}
