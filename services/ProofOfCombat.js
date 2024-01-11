@@ -17,6 +17,9 @@ const HTTPServer = require('@fabric/http/types/server');
 // Local Types
 const Goal = require('../types/goal');
 
+/**
+ * Proof of Combat
+ */
 class ProofOfCombat extends Service {
   constructor (settings = {}) {
     super(settings);
@@ -92,7 +95,7 @@ class ProofOfCombat extends Service {
 
     // Deterministic State ID
     const state = new Actor(this.state);
-    const behavior = this.selectAction(this.state);
+    const behavior = this.nextAction(this.state);
 
     // Create Beat
     const beat = {
@@ -168,7 +171,20 @@ class ProofOfCombat extends Service {
     return null;
   }
 
-  selectAction (state) {
+  mapWorldFromState (state) {
+    const map = {};
+
+    if (!state.collections) throw new Error('No collections found in state.');
+    if (!state.collections.places) throw new Error('No places found in state.');
+
+    for (let place of Object.values(state.collections.places)) {
+      map[place.id] = place;
+    }
+
+    return map;
+  }
+
+  nextAction (state) {
     let action = null;
 
     // TODO: grind state hash to get entropy
@@ -188,19 +204,6 @@ class ProofOfCombat extends Service {
     }
 
     return action;
-  }
-
-  mapWorldFromState (state) {
-    const map = {};
-
-    if (!state.collections) throw new Error('No collections found in state.');
-    if (!state.collections.places) throw new Error('No places found in state.');
-
-    for (let place of Object.values(state.collections.places)) {
-      map[place.id] = place;
-    }
-
-    return map;
   }
 
   async enumerateUsers () {
@@ -263,7 +266,6 @@ class ProofOfCombat extends Service {
     }
 
     // Start Heartbeat
-    console.debug('Setting interval to:', this.interval);
     this.heart = setInterval(this.beat.bind(this), this.interval);
 
     // Emit Events

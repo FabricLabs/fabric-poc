@@ -43,7 +43,7 @@ async function main (input) {
   return {
     id: service.id,
     links: [
-      `http://localhost:${settings.port}`
+      `http://${service.settings.http.hostname}:${service.settings.http.port}`
     ]
   };
 }
@@ -52,5 +52,5 @@ async function main (input) {
 main(settings).catch((error) => {
   console.error('[PROOFOFCOMBAT]', 'Main Process Exception:', error);
 }).then((result) => {
-  console.log('[PROOFOFCOMBAT]', 'Main Process Complete:', result);
+  console.log('[PROOFOFCOMBAT]', 'Main Process Running:', result);
 });
