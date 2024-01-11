@@ -1,0 +1,41 @@
+{
+  "name": "@fabric/poc",
+  "version": "0.1.0",
+  "description": "Fabric integration for proofofcombat.com",
+  "main": "services/ProofOfCombat.js",
+  "scripts": {
+    "report:install": "rm -rf node_modules && echo \"\n\" > package-lock.json && echo \"$ npm i\" > reports/install.log && npm i >> reports/install.log",
+    "test": "mocha tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FabricLabs/fabric-poc.git"
+  },
+  "keywords": [
+    "fabric",
+    "proof",
+    "of",
+    "combat",
+    "bitcoin",
+    "game",
+    "rpg",
+    "roleplay",
+    "role-playing",
+    "game"
+  ],
+  "author": "Fabric Labs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FabricLabs/fabric-poc/issues"
+  },
+  "homepage": "https://github.com/FabricLabs/fabric-poc#readme",
+  "dependencies": {
+    "@apollo/client": "3.8.9",
+    "@fabric/core": "FabricLabs/fabric#master",
+    "@fabric/http": "FabricLabs/fabric-http#feature/v0.1.0-RC1",
+    "graphql": "16.8.1"
+  },
+  "devDependencies": {
+    "mocha": "10.2.0"
+  }
+}
