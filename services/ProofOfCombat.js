@@ -6,11 +6,15 @@ const { ApolloClient, InMemoryCache, ApolloProvider, gql } = require('@apollo/cl
 
 // Fabric Types
 const Actor = require('@fabric/core/types/actor');
+const Chain = require('@fabric/core/types/chain');
 const Service = require('@fabric/core/types/service');
 
 // HTTP Types
 const Remote = require('@fabric/http/types/remote');
 const HTTPServer = require('@fabric/http/types/server');
+
+// Local Types
+const Goal = require('../types/goal');
 
 class ProofOfCombat extends Service {
   constructor (settings = {}) {
@@ -21,12 +25,17 @@ class ProofOfCombat extends Service {
       name: 'ProofOfCombat',
       port: 9898,
       frequency: 1,
+      nonce: 0,
+      goals: [
+        { validator: (state) => { return true; } } // TODO: implement other goals
+      ],
       http: {
         interface: '0.0.0.0',
         port: 9898
       },
       state: {
         status: 'INITIALIZED',
+        activity: 'sleep',
         collections: {
           places: {},
           users: {}
@@ -35,6 +44,7 @@ class ProofOfCombat extends Service {
     });
 
     this.actor = new Actor({ name: this.settings.name });
+    this.chain = new Chain({ name: this.settings.name });
     this.remote = new Remote({ authority: this.settings.authority });
     this.apollo = new ApolloClient({
       uri: this.settings.authority,
@@ -42,6 +52,7 @@ class ProofOfCombat extends Service {
     });
 
     this.http = new HTTPServer(this.settings.http);
+    this.goals = [];
     this.observer = null;
 
     this._state = {
@@ -50,6 +61,10 @@ class ProofOfCombat extends Service {
     };
 
     return this;
+  }
+
+  get heartbeat () {
+    return this._heartbeat;
   }
 
   get interval () {
@@ -78,12 +93,14 @@ class ProofOfCombat extends Service {
 
     // Deterministic State ID
     const state = new Actor(this.state);
+    const behavior = this.selectAction(state);
 
     // Create Beat
     const beat = {
       id: state.id,
       created: (new Date()).toISOString(),
-      state: this.state
+      state: this.state,
+      behavior: behavior
     };
 
     // Emit Beat
@@ -110,6 +127,15 @@ class ProofOfCombat extends Service {
     this.parent = commit.id;
 
     return this;
+  }
+
+  evaluateGoals () {
+    for (let goal of this.goals) {
+      const result = goal.assess(this.state);
+      if (result.passes) {
+        this.emit('GOAL_COMPLETE', goal);
+      }
+    }
   }
 
   exitsForPlaceID (id) {
@@ -146,6 +172,7 @@ class ProofOfCombat extends Service {
   selectAction (state) {
     let action = null;
 
+    // TODO: grind state hash to get entropy
     const entropy = Math.random();
     const map = this.mapWorldFromState(state);
 
@@ -229,6 +256,12 @@ class ProofOfCombat extends Service {
 
     // Start Services
     await this.http.start();
+
+    // Set Goals
+    for (let g of this.settings.goals) {
+      const goal = new Goal(g);
+      this.goals.push(goal);
+    }
 
     // Start Heartbeat
     this.heartbeat = setInterval(this.beat.bind(this), this.interval);
