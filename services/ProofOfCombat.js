@@ -4,6 +4,7 @@
 const merge = require('lodash.merge');
 const { applyOperation, observe } = require('fast-json-patch');
 const { ApolloClient, InMemoryCache, ApolloProvider, gql } = require('@apollo/client');
+const io = require('socket.io-client');
 
 // Fabric Types
 const Actor = require('@fabric/core/types/actor');
@@ -63,6 +64,7 @@ class ProofOfCombat extends Service {
     this.goals = [];
     this.observer = null;
     this.http = new HTTPServer(this.settings.http);
+    this.relay = null;
 
     // State
     this._state = {
@@ -206,6 +208,17 @@ class ProofOfCombat extends Service {
     return action;
   }
 
+  _handleSocketIOConnection (socket) {
+    if (!socket.name) return;
+    console.debug(socket.name, 'join the game');
+    socket.join('public');
+    socket.on('chat', async (data, callback) => {
+      if (!socket.name) return;
+      if (!data.message.trim().length) return;
+      console.debug('[PROOFOFCOMBAT] Chat:', socket.name, data.message);
+    });
+  }
+
   async enumerateUsers () {
     const query = gql`
       query {
@@ -258,6 +271,10 @@ class ProofOfCombat extends Service {
 
     // Start Services
     await this.http.start();
+
+    // Externals
+    this.relay = io('https://proofofcombat.com');
+    this.relay.on('connection', this._handleSocketIOConnection.bind(this));
 
     // Set Goals
     for (let g of this.settings.goals) {
