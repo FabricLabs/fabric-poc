@@ -9,6 +9,7 @@ const io = require('socket.io-client');
 // Fabric Types
 const Actor = require('@fabric/core/types/actor');
 const Chain = require('@fabric/core/types/chain');
+const Message = require('@fabric/core/types/message');
 const Service = require('@fabric/core/types/service');
 
 // HTTP Types
@@ -219,6 +220,33 @@ class ProofOfCombat extends Service {
     });
   }
 
+  _handleSocketIOHello (hello) {
+    // console.debug('[PROOFOFCOMBAT] SocketIO Hello:', hello);
+  }
+
+  _handleSocketIOChat (chat) {
+    // console.debug('[PROOFOFCOMBAT] SocketIO chat:', chat);
+    const data = {
+      type: 'P2P_CHAT_MESSAGE',
+      actor: chat.from,
+      object: {
+        created: chat.time,
+        content: chat.message
+      },
+      target: '/messages'
+    };
+
+    const message = Message.fromVector(['ChatMessage', JSON.stringify(data)]);
+    this.emit('message', message);
+  }
+
+  _sendChatMessage (message) {
+    this.emit('debug', 'Sending chat message:', message);
+    this.relay.emit('chat', { message: message.object.content }, (data) => {
+      // console.log("Got a reply!", data);
+    });
+  }
+
   async enumerateUsers () {
     const query = gql`
       query {
@@ -236,7 +264,7 @@ class ProofOfCombat extends Service {
 
     try {
       const result = await this.apollo.query({ query });
-      console.debug('[PROOFOFCOMBAT] Users:', result.data.users);
+      // console.debug('[PROOFOFCOMBAT] Users:', result.data.users);
       if (!result.data.users) throw new Error('No users found in response.');
       const users = result.data.users;
 
@@ -247,7 +275,7 @@ class ProofOfCombat extends Service {
 
       this.commit();
     } catch (exception) {
-      console.error('[PROOFOFCOMBAT] Error enumerating users:', exception);
+      // console.error('[PROOFOFCOMBAT] Error enumerating users:', exception);
     }
 
     return Object.values(this.state.collections.users);
@@ -273,8 +301,17 @@ class ProofOfCombat extends Service {
     await this.http.start();
 
     // Externals
-    this.relay = io('https://proofofcombat.com');
-    this.relay.on('connection', this._handleSocketIOConnection.bind(this));
+    this.relay = io('https://chrisinajar.com:2096', {
+      auth: {
+        token: 'get from api'
+      },
+      withCredentials: true
+    });
+
+    // this.relay.on('error', (error) => { console.error('[PROOFOFCOMBAT] SocketIO Error:', error); });
+    // this.relay.on('hello', this._handleSocketIOHello.bind(this));
+    this.relay.on('chat', this._handleSocketIOChat.bind(this));
+    // this.relay.on('connection', this._handleSocketIOConnection.bind(this));
 
     // Set Goals
     for (let g of this.settings.goals) {
@@ -299,7 +336,7 @@ class ProofOfCombat extends Service {
   }
 
   async sync () {
-    console.debug('[PROOFOFCOMBAT] Syncing...');
+    this.emit('debug', '[PROOFOFCOMBAT] Syncing...');
 
     // TODO:
     // - [ ] Sync Places
@@ -319,7 +356,7 @@ class ProofOfCombat extends Service {
 
     this.commit();
 
-    console.debug('[PROOFOFCOMBAT] Synced!');
+    this.emit('debug', '[PROOFOFCOMBAT] Synced!');
 
     return this;
   }
