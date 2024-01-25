@@ -16,5 +16,9 @@ module.exports = {
   },
   remotes: [
     { host: 'proofofcombat.com', port: 443, secure: true, collections: ['users'] }
-  ]
+  ],
+  socketio: {
+    authority: 'https://chrisinajar.com:2096'
+  },
+  token: 'get from proofofcombat.com'
 };
