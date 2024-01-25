@@ -301,9 +301,9 @@ class ProofOfCombat extends Service {
     await this.http.start();
 
     // Externals
-    this.relay = io('https://chrisinajar.com:2096', {
+    this.relay = io(this.settings.socketio.authority, {
       auth: {
-        token: 'get from api'
+        token: this.settings.token
       },
       withCredentials: true
     });
